@@ -14,16 +14,21 @@ jwt = JWTManager()
 def create_app():
     app = Flask(__name__)
 
-    # CORS Configuration
+    # Determine environment
+    is_production = os.getenv('ENVIRONMENT') == 'production' or os.getenv('VERCEL_ENV') == 'production'
+    
+    # CORS Configuration - use environment variables in production
+    cors_origins = os.getenv('CORS_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000,http://localhost:3001,http://127.0.0.1:3001').split(',')
+    
     CORS(app,
-         origins=["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:3001", "http://127.0.0.1:3001"],
+         origins=cors_origins,
          supports_credentials=True,
          allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
          methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"])
 
-    # Configuration
-    app.config['SECRET_KEY'] = 'your-secret-key-change-this-in-production'
-    app.config['JWT_SECRET_KEY'] = 'your-jwt-secret-key-change-this-in-production'
+    # Configuration - use environment variables, fall back to defaults for development
+    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret-key-change-this-in-production')
+    app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'your-jwt-secret-key-change-this-in-production')
 
     # File upload configuration
     app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
